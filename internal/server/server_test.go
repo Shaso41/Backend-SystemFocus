@@ -95,7 +95,6 @@ func TestServer_SetAndGet(t *testing.T) {
 }
 
 func TestServer_MultipleConcurrentClients(t *testing.T) {
-	t.Skip("Skipping flaky concurrent test - needs investigation")
 	srv := New("localhost:16381")
 
 	// Start server
