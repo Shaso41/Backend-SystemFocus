@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  redis-clone:
+    build: .
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    container_name: redis-clone
+    environment:
+      - TZ=UTC
