@@ -6,8 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yourusername/redis-clone/internal/store"
+	"github.com/Shaso41/Backend-SystemFocus/internal/store"
 )
+
+// SimpleString represents a RESP simple string response
+type SimpleString string
+
+// BulkString represents a RESP bulk string response
+type BulkString string
 
 // Handler processes commands and returns responses
 type Handler struct {
@@ -60,14 +66,14 @@ func (h *Handler) Execute(args []interface{}) (interface{}, error) {
 // handlePing handles PING command
 func (h *Handler) handlePing(args []interface{}) (interface{}, error) {
 	if len(args) == 1 {
-		return "PONG", nil
+		return SimpleString("PONG"), nil
 	}
 	if len(args) == 2 {
 		msg, ok := args[1].(string)
 		if !ok {
 			return nil, fmt.Errorf("ERR invalid argument")
 		}
-		return msg, nil
+		return BulkString(msg), nil
 	}
 	return nil, fmt.Errorf("ERR wrong number of arguments for 'ping' command")
 }
@@ -112,7 +118,7 @@ func (h *Handler) handleSet(args []interface{}) (interface{}, error) {
 	}
 
 	h.store.Set(key, value, expiration)
-	return "OK", nil
+	return SimpleString("OK"), nil
 }
 
 // handleGet handles GET command
@@ -131,7 +137,7 @@ func (h *Handler) handleGet(args []interface{}) (interface{}, error) {
 		return nil, nil // Return null
 	}
 
-	return value, nil
+	return BulkString(value), nil
 }
 
 // handleDelete handles DELETE/DEL command
@@ -237,5 +243,5 @@ func (h *Handler) handleInfo(args []interface{}) (interface{}, error) {
 		"db0:keys=%d\r\n",
 		h.store.Count())
 
-	return info, nil
+	return BulkString(info), nil
 }

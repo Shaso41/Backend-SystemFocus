@@ -6,12 +6,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
-	"github.com/yourusername/redis-clone/internal/commands"
-	"github.com/yourusername/redis-clone/internal/protocol"
-	"github.com/yourusername/redis-clone/internal/store"
+	"github.com/Shaso41/Backend-SystemFocus/internal/commands"
+	"github.com/Shaso41/Backend-SystemFocus/internal/protocol"
+	"github.com/Shaso41/Backend-SystemFocus/internal/store"
 )
 
 // Server represents the Redis-like TCP server
@@ -21,6 +22,7 @@ type Server struct {
 	store    *store.Store
 	handler  *commands.Handler
 	stopCh   chan struct{}
+	stopOnce sync.Once
 }
 
 // New creates a new server instance
@@ -127,8 +129,10 @@ func (s *Server) writeResponse(encoder *protocol.Encoder, result interface{}) er
 	switch v := result.(type) {
 	case nil:
 		return encoder.WriteNull()
-	case string:
-		return encoder.WriteSimpleString(v)
+	case commands.SimpleString:
+		return encoder.WriteSimpleString(string(v))
+	case commands.BulkString:
+		return encoder.WriteBulkString(string(v))
 	case int64:
 		return encoder.WriteInteger(v)
 	case []string:
@@ -158,9 +162,11 @@ func (s *Server) handleShutdown() {
 
 // Stop stops the server
 func (s *Server) Stop() {
-	close(s.stopCh)
-	if s.listener != nil {
-		s.listener.Close()
-	}
-	s.store.Close()
+	s.stopOnce.Do(func() {
+		close(s.stopCh)
+		if s.listener != nil {
+			s.listener.Close()
+		}
+		s.store.Close()
+	})
 }

@@ -3,8 +3,8 @@ package commands
 import (
 	"testing"
 
+	"github.com/Shaso41/Backend-SystemFocus/internal/store"
 	"github.com/stretchr/testify/assert"
-	"github.com/yourusername/redis-clone/internal/store"
 )
 
 func TestHandler_Ping(t *testing.T) {
@@ -15,12 +15,12 @@ func TestHandler_Ping(t *testing.T) {
 	// PING without argument
 	result, err := h.Execute([]interface{}{"PING"})
 	assert.NoError(t, err)
-	assert.Equal(t, "PONG", result)
+	assert.Equal(t, SimpleString("PONG"), result)
 
 	// PING with argument
 	result, err = h.Execute([]interface{}{"PING", "hello"})
 	assert.NoError(t, err)
-	assert.Equal(t, "hello", result)
+	assert.Equal(t, BulkString("hello"), result)
 }
 
 func TestHandler_SetAndGet(t *testing.T) {
@@ -31,12 +31,12 @@ func TestHandler_SetAndGet(t *testing.T) {
 	// SET
 	result, err := h.Execute([]interface{}{"SET", "key1", "value1"})
 	assert.NoError(t, err)
-	assert.Equal(t, "OK", result)
+	assert.Equal(t, SimpleString("OK"), result)
 
 	// GET
 	result, err = h.Execute([]interface{}{"GET", "key1"})
 	assert.NoError(t, err)
-	assert.Equal(t, "value1", result)
+	assert.Equal(t, BulkString("value1"), result)
 }
 
 func TestHandler_GetNonExistent(t *testing.T) {
@@ -105,7 +105,7 @@ func TestHandler_SetWithExpiration(t *testing.T) {
 
 	result, err := h.Execute([]interface{}{"SET", "key1", "value1", "EX", "10"})
 	assert.NoError(t, err)
-	assert.Equal(t, "OK", result)
+	assert.Equal(t, SimpleString("OK"), result)
 
 	// Verify TTL is set
 	result, err = h.Execute([]interface{}{"TTL", "key1"})
@@ -152,9 +152,9 @@ func TestHandler_Info(t *testing.T) {
 	result, err := h.Execute([]interface{}{"INFO"})
 	assert.NoError(t, err)
 
-	info, ok := result.(string)
+	info, ok := result.(BulkString)
 	assert.True(t, ok)
-	assert.Contains(t, info, "redis_version")
+	assert.Contains(t, string(info), "redis_version")
 }
 
 func TestHandler_UnknownCommand(t *testing.T) {
